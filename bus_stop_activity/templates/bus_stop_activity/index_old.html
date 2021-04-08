@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<style>
+
+    .leaflet-container {  /* all maps */
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+    }
+
+    #specialbigmap {
+        height: 800px;
+    }
+
+    /* Resize the "display_raw" textbox */
+    .django-leaflet-raw-textarea {
+        width: 100%;
+    }
+
+</style>
+<html lang="en">
+{% load leaflet_tags %}
+<head>
+    {% leaflet_js %}
+    {% leaflet_css %}
+    <meta charset="UTF-8">
+    <title>Visualizing bus stop activity</title>
+</head>
+<body>
+<script>
+    function map_init_basic (map, options) {
+        var buses = L.layerGroup([]);
+        {% for stop in bus_stops %}
+            {% if stop.bus_count > 0 %}
+                L.circleMarker([{{stop.latitude}}, {{stop.longitude}}], {color: 'black', fillColor: 'blue', fillOpacity: {{stop.opacity}}, radius: 5, weight: 0.5}).bindPopup('<p>Pysäkki: <b>{{stop.name}}</b></p><p>Pysähdykset: <b>{{stop.bus_count}}</b></p>').addTo(map);
+                L.circle([{{stop.latitude}}, {{stop.longitude}}], 20).bindPopup('<p>Pysäkki: <b>{{stop.name}}</b></p><p>Pysähdykset: <b>{{stop.bus_count}}</b></p>').addTo(buses);
+            {% endif %}
+        {% endfor %}
+        {% for bus in buses %}
+            L.circleMarker([{{bus.latitude}}, {{bus.longitude}}], {color: 'blue', fillColor: 'blue', fillOpacity: 1, radius: 2, weight: 0.5}).addTo(buses);
+        {% endfor %}
+        var baseMaps = {
+        };
+        var overlayMaps = {
+            'Buses': buses
+        };
+        L.control.layers(baseMaps, overlayMaps).addTo(map);
+    }
+</script>
+
+{% leaflet_map "Bus stop activity" callback="window.map_init_basic" %}
+</body>
+</html>

@@ -1,0 +1,48 @@
+{% load mathfilters %}
+
+<!DOCTYPE html>
+<style>
+
+    .leaflet-container {  /* all maps */
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+    }
+
+    #specialbigmap {
+        height: 800px;
+    }
+
+    /* Resize the "display_raw" textbox */
+    .django-leaflet-raw-textarea {
+        width: 100%;
+    }
+
+</style>
+<html lang="en">
+{% load leaflet_tags %}
+<head>
+    {% leaflet_js %}
+    {% leaflet_css %}
+    <meta charset="UTF-8">
+    <title>Bus stop activity</title>
+</head>
+<body>
+<script>
+    function map_init_basic (map, options) {
+        map.addLayer(new L.TileLayer('http://{s}.tiles.mapbox.com/v3/mapbox.mapbox-light/{z}/{x}/{y}.png'));
+
+        {% for stop, stop_data in data.items %}
+            {% if stop_data.total_stops > 0 %}
+                L.circleMarker([{{stop_data.latitude}}, {{stop_data.longitude}}], {color: 'blue', fillColor: 'blue', fillOpacity: {{ stop_data.total_stops|div:max_stop_count  }}, radius: 5, weight: 0.5}).bindPopup('<p>Pysäkki: <b>{{stop_data.name}}</b></p><p><b>Pysähdykset yht: {{stop_data.total_stops}}</b></p><p>{% for line, count in stop_data.bus_dict.items %}Linja {{ line }}: {{ count }}<br>{% endfor %}</p>').addTo(map);
+            {% else %}
+            {% endif %}
+        {% endfor %}
+    }
+</script>
+
+{% leaflet_map "Bus stop activity" callback="window.map_init_basic" %}
+</body>
+</html>
